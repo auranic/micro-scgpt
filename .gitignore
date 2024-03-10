@@ -1,3 +1,4 @@
 data/
+src/micro_scgpt.egg-info/
 Pipfile
 *-checkpoint.ipynb
