@@ -53,3 +53,4 @@ if __name__ == "__main__":
     test_tokenizer_prepare_file()
     test_tokenizer_load_file_raw()
     test_tokenizer_load_bin_dataset()
+    pass

@@ -2,3 +2,5 @@ data/
 src/micro_scgpt.egg-info/
 Pipfile
 *-checkpoint.ipynb
+notebooks/small_scgpt_colab.ipynb
+notebooks/small_scgpt_colab.ipynb

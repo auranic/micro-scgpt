@@ -3,7 +3,6 @@ import os
 import scanpy as sc
 import time
 import torch
-from typing import List
 
 from mscgpt import settings
 
@@ -20,6 +19,10 @@ class Tokenizer:
         self.gtoi = {} # Gene name -> gene id
         self.itog = {} # Gene id -> gene name
         self._load_gene_ids()
+
+    @property
+    def pad_token(self) -> int:
+        return len(self.gtoi)
 
     def _bin(self, x: torch.tensor) -> torch.tensor:
         x_out = torch.zeros_like(x)
@@ -60,7 +63,10 @@ class Tokenizer:
             result.append(gid)
         return torch.tensor(result)
 
-    def prepare_dataset(self, adata: sc.AnnData) -> List[torch.tensor]:
+    def prepare_dataset(self, adata: sc.AnnData) -> list[torch.tensor]:
+        """
+        TODO
+        """
         # Preprocesses a single-cell dataset for pre-training.
         # Creates tokens corresponding to newly seen genes, 
         # Expects basic scRNA-seq preprocessing to already be performed.
@@ -86,12 +92,18 @@ class Tokenizer:
         self._update_gene_ids()
         return samples
     
-    def save_pretraining_dataset(self, l: List[torch.tensor], fname: str) -> None:
+    def save_pretraining_dataset(self, l: list[torch.tensor], fname: str) -> None:
+        """
+        TODO
+        """
         with open(os.path.join(settings.PATH_PRETRAIN, f"{fname}.tk"), 'w') as f_out:
             for x in l: 
                 f_out.write(','.join([str(float(xi)) for xi in x]) + '\n')
 
-    def load_pretraining_dataset_raw(self, fname: str) -> List[torch.tensor]:
+    def load_pretraining_dataset_raw(self, fname: str) -> list[torch.tensor]:
+        """
+        TODO
+        """
         if not fname.endswith('.tk'):
             fname += '.tk'
         with open(os.path.join(settings.PATH_PRETRAIN, fname), 'r') as f_in:
@@ -101,13 +113,16 @@ class Tokenizer:
             self, 
             fname: str,
             nbins: int = 5
-        )-> List[torch.tensor]:
+        )-> list[torch.tensor]:
+        """
+        TODO
+        """
         raw_data = self.load_pretraining_dataset_raw(fname)
         result = []
         for x in raw_data: #TODO: efficiency?
             x = x.view(2, -1)
-            x[1] = self._bin(x[1])
-            result.append(x.long())
+            x = torch.cat((x, self._bin(x[1]).unsqueeze(0)), axis=0)
+            result.append(x)
         return result
 
 
