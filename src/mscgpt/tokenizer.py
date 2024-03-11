@@ -20,9 +20,21 @@ class Tokenizer:
         self.itog = {} # Gene id -> gene name
         self._load_gene_ids()
 
+    @property 
+    def n_genes(self) -> int:
+        return len(self.gtoi)
+    
     @property
     def pad_token(self) -> int:
-        return len(self.gtoi)
+        return self.n_genes
+    
+    @property
+    def vocab_size(self) -> int:
+        return len(self.gtoi) + 1
+    
+    @property
+    def bins_size(self) -> int:
+        return self.nbins
 
     def _bin(self, x: torch.tensor) -> torch.tensor:
         x_out = torch.zeros_like(x)

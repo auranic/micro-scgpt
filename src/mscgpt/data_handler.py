@@ -122,9 +122,9 @@ class DataHandler:
         data = self.data[mode]
         n, d = data["gid"].shape[0], data["gid"].shape[1]
         idx = torch.randint(n, (self.batch_size,))
-        gids = torch.zeros((self.batch_size, self.ctx_size)) + self.pad_token
-        bins = torch.zeros((self.batch_size, self.ctx_size))
-        cnts = torch.zeros((self.batch_size, self.ctx_size))
+        gids = torch.zeros((self.batch_size, self.ctx_size)).type(torch.long) + self.pad_token
+        bins = torch.zeros((self.batch_size, self.ctx_size)).type(torch.long)
+        cnts = torch.zeros((self.batch_size, self.ctx_size)).type(torch.long)
         gids[:, :d] = data["gid"][idx]
         bins[:, :d] = data["bin"][idx]
         cnts[:, :d] = data["cnt"][idx]
