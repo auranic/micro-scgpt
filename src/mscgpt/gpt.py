@@ -30,6 +30,7 @@ class MicroSCGPT(nn.Module):
         self.ln_bin = nn.LayerNorm(self.embed_size)
 
         # Transformers module
+        # TODO: Flash attention
         self.transformer_layer = nn.TransformerEncoderLayer(
             self.embed_size, 
             self.n_heads,
@@ -37,6 +38,9 @@ class MicroSCGPT(nn.Module):
             batch_first=True
         )
         self.transformer = nn.TransformerEncoder(self.transformer_layer, self.n_layers)
+
+        self.n_parameters = sum(p.numel() for p in self.parameters())
+        print(f"> MicroSCGPT: Model initialized with {self.n_parameters} parameters.")
 
     def forward(self, x_gid, x_bin) -> torch.tensor:
         # -> [B, ctx_size], [B, ctx_size]

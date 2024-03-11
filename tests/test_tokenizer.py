@@ -20,7 +20,7 @@ def test_tokenizer_prepare_file():
     sc.pp.filter_cells(adata, min_counts=10)
     sc.pp.filter_genes(adata, min_counts=10)
     sc.pp.log1p(adata)
-    sc.pp.highly_variable_genes(adata, n_top_genes=500)
+    sc.pp.highly_variable_genes(adata, n_top_genes=2000)
     adata = adata[:, adata.var['highly_variable']].copy()
     sc.pp.filter_cells(adata, min_counts=10)
 
