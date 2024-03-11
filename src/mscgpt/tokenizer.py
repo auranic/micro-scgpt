@@ -83,7 +83,7 @@ class Tokenizer:
         # Creates tokens corresponding to newly seen genes, 
         # Expects basic scRNA-seq preprocessing to already be performed.
         # Returns a list of N arrays of the shape 2T: [g_ids g_counts].
-        step = adata.n_obs // 50
+        step = 500 # Print frequency
         samples = []
         tstart = time.time()
         for i, cell in enumerate(adata):

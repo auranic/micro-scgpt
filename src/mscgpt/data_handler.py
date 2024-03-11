@@ -119,21 +119,13 @@ class DataHandler:
             f"Unknown mode: {mode}. "
             "Expected 'train', 'val' or 'test'."
         )
-        data = self.data[mode]
+        data = self.data[mode] # Loads gids, bins, cnts 
         n, d = data["gid"].shape[0], data["gid"].shape[1]
-        idx = torch.randint(n, (self.batch_size,))
-        gids = torch.zeros((self.batch_size, self.ctx_size)).type(torch.long) + self.pad_token
-        bins = torch.zeros((self.batch_size, self.ctx_size)).type(torch.long)
-        cnts = torch.zeros((self.batch_size, self.ctx_size)).type(torch.float)
-        gids[:, :d] = data["gid"][idx]
-        bins[:, :d] = data["bin"][idx]
-        cnts[:, :d] = data["cnt"][idx]
-        tkperm = torch.randperm(self.ctx_size)
+
         # Suffling gids and bins
-        gids = gids[:, tkperm]
-        bins = bins[:, tkperm]
-        # Reordering cnsts to a fixed token-based order
-        x_cnt_ordered = torch.zeros_like(cnts)
-        nnz_idx = (gids != self.pad_token).nonzero()
-        x_cnt_ordered[nnz_idx[:, 0], gids[nnz_idx[:, 0], nnz_idx[:, 1]]] = cnts[nnz_idx[:, 0], nnz_idx[:, 1]]
-        return gids.to(self.device), bins.to(self.device), cnts.to(self.device)
+        colperm = torch.randperm(d)
+        batch_idx = torch.randint(n, (self.batch_size,))
+        gids = data["gid"][batch_idx][:, colperm[:self.ctx_size]].clone().type(torch.long)
+        bins = data["bin"][batch_idx][:, colperm[:self.ctx_size]].clone().type(torch.long)
+
+        return gids.to(self.device), bins.to(self.device)
