@@ -4,3 +4,4 @@ Pipfile
 *-checkpoint.ipynb
 notebooks/small_scgpt_colab.ipynb
 notebooks/tests.ipynb
+Pipfile.lock
