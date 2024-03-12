@@ -69,8 +69,9 @@ class DataHandler:
         TODO
         """
         # Dynamic resizing
-        max_shape_1 = max(x.shape[1] for x in data)
-        if max_shape_1 > self.data["train"]["gid"].shape[1]:
+        d = self.data["train"]["gid"].shape[1]
+        max_shape_1 = max(max(x.shape[1] for x in data), d)
+        if max_shape_1 > d:
             self._resize_data(max_shape_1)
 
         # Dataset splicing
