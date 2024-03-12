@@ -1,4 +1,5 @@
 import torch
+import torch.nn.functional as F
 
 from typing import Literal, Tuple
 
@@ -48,6 +49,10 @@ class DataHandler:
             for dkey, ditem in mitem.items():
                 s += f"[{mkey},{dkey}]\t{ditem.shape}\t{ditem[0, :10]}\n"
         return s[:-1]
+    
+    @property
+    def training_set_size(self):
+        return self.data["train"]["gid"].shape[0]
         
     def _resize_data(self, d: int) -> None:
         # Dynamically grows data tensors if necessary
@@ -129,3 +134,34 @@ class DataHandler:
         bins = data["bin"][batch_idx][:, colperm[:self.ctx_size]].clone().type(torch.long)
 
         return gids.to(self.device), bins.to(self.device)
+    
+    def generate_mask(self, x_gid, x_bin, pad_token, mask_p: float = 0.2):
+        """
+        TODO
+        """
+        B, T = x_gid.shape
+        mask = (torch.rand((B, T)) < mask_p).to(self.device) # 1: position is masked
+        masked_pos = mask.nonzero()
+        x_gid_masked, x_bin_masked = x_gid.clone(), x_bin.clone()
+        x_gid_masked[masked_pos[:, 0], masked_pos[:, 1]] = pad_token
+        x_bin_masked[masked_pos[:, 0], masked_pos[:, 1]] = 0.0
+        return x_gid_masked, x_bin_masked, mask
+
+    def gene_expression_loss(self, x_gid, x_bin, estimate, mask):
+        """
+        TODO
+        """
+        # x_gid: [B, T]
+        # x_bin: [B, T]
+        # estimate: [B, V]
+        # mask: [B, T]
+        target = torch.zeros(estimate.shape).type(torch.long).to(self.device)
+        nnz = (x_gid != self.pad_token).nonzero().to(self.device)
+        target[nnz[:, 0], x_gid[nnz[:, 0], nnz[:, 1]]] = x_bin[nnz[:, 0], nnz[:, 1]]
+        target = target.to(torch.float)
+        masked_pos = mask.nonzero() 
+        mask_fs = torch.zeros((estimate.shape[0], estimate.shape[1] + 1)).type(torch.float).to(self.device)
+        mask_fs[masked_pos[:, 0], x_gid[masked_pos[:, 0], masked_pos[:, 1]]] = 1.0
+        estimate *= mask_fs[:, :-1]
+        target *= mask_fs[:, :-1]
+        return F.mse_loss(estimate, target)

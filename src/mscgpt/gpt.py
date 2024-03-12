@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 
+from torch.nn import functional as F
+
 class MicroSCGPT(nn.Module):
     """TODO"""
     def __init__(
@@ -11,7 +13,8 @@ class MicroSCGPT(nn.Module):
             n_heads: int = 4,
             n_layers: int = 4,
             embed_size: int = 128,
-            trans_hidden_size: int = 128
+            trans_hidden_size: int = 128,
+            dropout: float = .1
         ):
         super().__init__()
 
@@ -22,6 +25,7 @@ class MicroSCGPT(nn.Module):
         self.n_heads = n_heads
         self.n_layers = n_layers
         self.embed_size = embed_size
+        self.dropout = dropout
 
         # Input module
         self.emb_gid = nn.Embedding(self.vocab_size, self.embed_size)
@@ -35,7 +39,8 @@ class MicroSCGPT(nn.Module):
             self.embed_size, 
             self.n_heads,
             trans_hidden_size,
-            batch_first=True
+            batch_first=True,
+            dropout=self.dropout
         )
         self.transformer = nn.TransformerEncoder(self.transformer_layer, self.n_layers)
 
@@ -47,6 +52,7 @@ class MicroSCGPT(nn.Module):
         x_gid_emb = self.ln_gid(self.emb_gid(x_gid))
         x_bin_emb = self.ln_bin(self.emb_gid(x_bin))
         x_emb = x_gid_emb + x_bin_emb
+        x_emb = F.dropout(x_emb, p=self.dropout)
         return self.transformer(x_emb) # -> [B, ctx_size, embed_size]
 
 
@@ -63,14 +69,14 @@ class GeneExpressionRegressor(nn.Module):
         super().__init__()
         self.layers = nn.ModuleList([])
         self.layers.append(nn.Linear(ctx_size*embed_size, hidden_size))
-        self.layers.append(nn.ReLU())
+        self.layers.append(nn.LeakyReLU())
         self.layers.append(nn.LayerNorm(hidden_size))
         for _ in range(n_hidden_layers):
             self.layers.append(nn.Linear(hidden_size, hidden_size))
-            self.layers.append(nn.ReLU())
+            self.layers.append(nn.LeakyReLU())
             self.layers.append(nn.LayerNorm(hidden_size))
         self.layers.append(nn.Linear(hidden_size, vocab_size))
-        self.layers.append(nn.ReLU())
+        self.layers.append(nn.LeakyReLU())
 
     def forward(self, x_emb) -> torch.tensor:
         B, T, C = x_emb.shape
