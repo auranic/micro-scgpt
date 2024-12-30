@@ -133,8 +133,9 @@ class DataHandler:
         batch_idx = torch.randint(n, (self.batch_size,))
         gids = data["gid"][batch_idx][:, colperm[:self.ctx_size]].clone().type(torch.long)
         bins = data["bin"][batch_idx][:, colperm[:self.ctx_size]].clone().type(torch.long)
+        cnts = data["cnt"][batch_idx][:, colperm[:self.ctx_size]].clone().type(torch.long)
 
-        return gids.to(self.device), bins.to(self.device)
+        return gids.to(self.device), bins.to(self.device)#, cnts.to(self.device), batch_idx
     
     def generate_mask(self, x_gid, x_bin, pad_token, mask_p: float = 0.2):
         """
